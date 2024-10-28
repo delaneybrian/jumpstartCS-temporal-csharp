@@ -8,7 +8,6 @@ namespace JumpstartCS.TemporalTickets.Workflows
         [WorkflowInit]
         public PurchaseTicketsWorkflow()
         {
-            
         }
 
         [WorkflowRun]

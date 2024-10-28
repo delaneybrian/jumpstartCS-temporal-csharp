@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JumpstartCS.TemporalTickets.Infrastructure\JumpstartCS.TemporalTickets.Infrastructure.csproj" />
+    <ProjectReference Include="..\JumpstartCS.TemporalTickets.Interfaces\JumpstartCS.TemporalTickets.Interfaces.csproj" />
     <ProjectReference Include="..\JumpstartCS.TemporalTickets\JumpstartCS.TemporalTickets.csproj" />
   </ItemGroup>
 </Project>
