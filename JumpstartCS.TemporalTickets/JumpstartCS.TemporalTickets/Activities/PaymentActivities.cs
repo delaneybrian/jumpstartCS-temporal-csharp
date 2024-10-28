@@ -14,13 +14,13 @@ namespace JumpstartCS.TemporalTickets.Activities
         }
 
         [Activity]
-        public Task MakePayment()
+        public Task MakePayment(Guid customerId, decimal amount)
         {
             return Task.CompletedTask;
         }
 
         [Activity]
-        public Task RefundPayment()
+        public Task RefundPayment(Guid customerId, decimal amount)
         {
             return Task.CompletedTask;
         }

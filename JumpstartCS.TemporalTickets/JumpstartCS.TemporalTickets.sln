@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpstartCS.TemporalTickets
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpstartCS.TemporalTickets.Interfaces", "JumpstartCS.TemporalTickets.Interfaces\JumpstartCS.TemporalTickets.Interfaces.csproj", "{EB71382F-52E0-4A6A-8CCC-FE6BD411683D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpstartCS.TemporalTickets.Definitions", "JumpstartCS.TemporalTickets.Definitions\JumpstartCS.TemporalTickets.Definitions.csproj", "{08FE739C-9B3D-4CCE-9F5B-25FADAA11899}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EB71382F-52E0-4A6A-8CCC-FE6BD411683D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB71382F-52E0-4A6A-8CCC-FE6BD411683D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB71382F-52E0-4A6A-8CCC-FE6BD411683D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08FE739C-9B3D-4CCE-9F5B-25FADAA11899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08FE739C-9B3D-4CCE-9F5B-25FADAA11899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08FE739C-9B3D-4CCE-9F5B-25FADAA11899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08FE739C-9B3D-4CCE-9F5B-25FADAA11899}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
