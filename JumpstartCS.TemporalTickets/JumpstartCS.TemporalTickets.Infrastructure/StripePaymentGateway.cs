@@ -11,7 +11,7 @@ namespace JumpstartCS.TemporalTickets.Infrastructure
         private readonly IOptions<StripePaymentGatewayOptions> _options;
         private readonly Random _random;
 
-        private readonly ConcurrentDictionary<Guid, decimal> BalanceByUserId = new()
+        private readonly ConcurrentDictionary<Guid, decimal> BalanceByCustomerId = new()
         {
             [Guid.Parse("b073f08f-a3af-4b32-85c6-f2c5121291d6")] = 100,
             [Guid.Parse("9266a6d5-3218-4dc1-b4ba-88e8eca2dc58")] = 100,
@@ -26,29 +26,35 @@ namespace JumpstartCS.TemporalTickets.Infrastructure
             _options = options;
         }
 
-        public Task CreditUser(Guid userId, decimal amount)
+        public Task CreditCustomer(Guid customerId, decimal amount)
         {
             if (IsTransientFailure())
                 throw new TransientPaymentException();
 
-            var currentBalance = BalanceByUserId[userId];
+            if (!BalanceByCustomerId.ContainsKey(customerId))
+                throw new InvalidCustomerException();
 
-            BalanceByUserId[userId] = currentBalance + amount;
+            var currentBalance = BalanceByCustomerId[customerId];
+
+            BalanceByCustomerId[customerId] = currentBalance + amount;
 
             return Task.CompletedTask;
         }
 
-        public Task DebitUser(Guid userId, decimal amount)
+        public Task DebitCustomer(Guid customerId, decimal amount)
         {
             if (IsTransientFailure())
                 throw new TransientPaymentException();
 
-            var currentBalance = BalanceByUserId[userId];
+            if (!BalanceByCustomerId.ContainsKey(customerId))
+                throw new InvalidCustomerException();
+
+            var currentBalance = BalanceByCustomerId[customerId];
 
             if (currentBalance < amount)
                 throw new InsufficientFundsException();
 
-            BalanceByUserId[userId] = currentBalance - amount;
+            BalanceByCustomerId[customerId] = currentBalance - amount;
 
             return Task.CompletedTask;
         }

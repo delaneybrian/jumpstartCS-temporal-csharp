@@ -1,11 +1,13 @@
-﻿namespace JumpstartCS.TemporalTickets.Interfaces
+﻿using JumpstartCS.TemporalTickets.Definitions;
+
+namespace JumpstartCS.TemporalTickets.Interfaces
 {
     public interface ITicketRepository
     {
-        public ICollection<Guid> ReserveTickets(Guid customerId, Guid eventId, int numberOfTickets);
+        public Task ReserveTickets(Guid customerId, Guid eventId, int numberOfTickets);
 
-        public bool ReleaseTickets(Guid customerId, Guid eventId);
+        public Task<ICollection<Ticket>> ConfirmTickets(Guid customerId, Guid eventId);
 
-        public bool ConfirmTickets(Guid customerId, Guid eventId);
+        public Task ReleaseTickets(Guid customerId, Guid eventId);
     }
 }

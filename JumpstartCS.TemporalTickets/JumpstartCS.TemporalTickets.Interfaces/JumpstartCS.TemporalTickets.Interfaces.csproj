@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\JumpstartCS.TemporalTickets.Definitions\JumpstartCS.TemporalTickets.Definitions.csproj" />
+  </ItemGroup>
+
 </Project>

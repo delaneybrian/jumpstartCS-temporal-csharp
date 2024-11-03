@@ -1,4 +1,5 @@
-﻿using JumpstartCS.TemporalTickets.Interfaces;
+﻿using JumpstartCS.TemporalTickets.Definitions;
+using JumpstartCS.TemporalTickets.Interfaces;
 using Temporalio.Activities;
 
 namespace JumpstartCS.TemporalTickets.Activities
@@ -13,15 +14,15 @@ namespace JumpstartCS.TemporalTickets.Activities
         }
 
         [Activity]
-        public Task HoldTickets()
+        public async Task HoldTickets(Guid customerId, Guid eventId, int numberOfTickets)
         {
-            return Task.CompletedTask;
+            await _ticketRepository.ReserveTickets(customerId, eventId, numberOfTickets);
         }
         
         [Activity]
-        public Task ReserveTickets()
+        public async Task<ICollection<Ticket>> ReserveTickets(Guid customerId, Guid eventId)
         {
-            return Task.CompletedTask;
+            return await _ticketRepository.ConfirmTickets(customerId, eventId);
         }
 
         [Activity]

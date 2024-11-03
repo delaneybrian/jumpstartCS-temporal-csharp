@@ -2,8 +2,8 @@
 {
     public interface IPaymentGateway
     {
-        Task DebitUser(Guid userId, decimal amount);
+        Task DebitCustomer(Guid customerId, decimal amount);
 
-        Task CreditUser(Guid userId, decimal amount);
+        Task CreditCustomer(Guid customerId, decimal amount);
     }
 }

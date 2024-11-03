@@ -14,9 +14,9 @@ namespace JumpstartCS.TemporalTickets.Activities
         }
 
         [Activity]
-        public Task MakePayment(Guid customerId, decimal amount)
+        public async Task MakePayment(Guid customerId, decimal amount)
         {
-            return Task.CompletedTask;
+            await _paymentGateway.DebitCustomer(customerId, amount);
         }
 
         [Activity]

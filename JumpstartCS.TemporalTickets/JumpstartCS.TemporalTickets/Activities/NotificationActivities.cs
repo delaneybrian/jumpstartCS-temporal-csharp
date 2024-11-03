@@ -1,13 +1,21 @@
-﻿using Temporalio.Activities;
+﻿using JumpstartCS.TemporalTickets.Interfaces;
+using Temporalio.Activities;
 
 namespace JumpstartCS.TemporalTickets.Activities
 {
     public class NotificationActivities
     {
-        [Activity]
-        public Task NotifyUser()
+        private readonly INotificationService _notificationService;
+
+        public NotificationActivities(INotificationService notificationService)
         {
-            return Task.CompletedTask;
+            _notificationService = notificationService;
+        }
+
+        [Activity]
+        public async Task NotifyUser(Guid customerId)
+        {
+            await _notificationService.SendPushNotification(customerId, "Tickets bought");
         }
     }
 }

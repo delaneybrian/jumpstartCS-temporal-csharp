@@ -1,39 +1,18 @@
-﻿using JumpstartCS.TemporalTickets.Definitions.Configuration;
+﻿using System.Collections.Concurrent;
+using JumpstartCS.TemporalTickets.Definitions;
+using JumpstartCS.TemporalTickets.Definitions.Configuration;
 using JumpstartCS.TemporalTickets.Definitions.Exceptions;
 using JumpstartCS.TemporalTickets.Interfaces;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Concurrent;
 
 namespace JumpstartCS.TemporalTickets.Infrastructure
 {
-    public record Ticket
-    {
-        public Guid Id { get; init; }
-
-        public TicketStatus TicketStatus { get; init; }
-
-        public Guid? AssignedToCustomerId { get; init; }
-    }
-
-    public enum TicketStatus
-    {
-        Default = 0,
-        Unassigned = 1,
-        Reserved = 2,
-        Confirmed = 3,
-        Cancelled = 4
-    }
-
     public class InMemoryTicketRepository : ITicketRepository
     {
         private readonly ConcurrentDictionary<Guid, ConcurrentBag<Ticket>> TicketsByEventId = new()
         {
             [Guid.Parse("a123fabc-1234-4e21-8d5b-12e4c9ab89c7")] = GenerateTickets(10),
             [Guid.Parse("f2341cde-5678-41a1-92ba-45b6ec124d3f")] = GenerateTickets(10),
-            [Guid.Parse("b345d9ef-9101-4b24-a456-78d9f10cba4f")] = GenerateTickets(10),
-            [Guid.Parse("c456e0ab-2345-4c53-b78a-90bcfe32d5e6")] = GenerateTickets(10),
-            [Guid.Parse("d567f1bc-6789-4d67-c89a-1234dc98f7e9")] = GenerateTickets(10),
         };
 
         private readonly IOptions<InMemoryTicketRepositoryOptions> _options;
@@ -46,30 +25,65 @@ namespace JumpstartCS.TemporalTickets.Infrastructure
             _random = new Random();
         }
 
-        public bool ConfirmTickets(Guid customerId, Guid eventId)
+
+        public Task ReserveTickets(Guid customerId, Guid eventId, int numberOfTickets)
         {
             if (IsTransientFailure())
                 throw new TransientTicketsException();
+
+            if (!TicketsByEventId.ContainsKey(eventId))
+                throw new InvalidEventException();
+
+            var ticketsToHold = TicketsByEventId[eventId]
+                .Where(x => x.TicketStatus == TicketStatus.Unassigned)
+                .Take(numberOfTickets)
+                .ToList();
+
+            if (ticketsToHold.Count < numberOfTickets)
+                throw new InsufficientTicketsAvaibableException();
+
+            foreach(var ticketToHold in ticketsToHold)
+            {
+                ticketToHold.TicketStatus = TicketStatus.Reserved;
+                ticketToHold.AssignedToCustomerId = customerId;
+            }
+
+            return Task.CompletedTask;
         }
 
-        public bool ReleaseTickets(Guid customerId, Guid eventId)
-        {
-            if (IsTransientFailure())
-                throw new TransientTicketsException();
-        }
-
-        public ICollection<Guid> ReserveTickets(Guid customerId, Guid eventId, int numberOfTickets)
+        public Task<ICollection<Ticket>> ConfirmTickets(Guid customerId, Guid eventId)
         {
             if (IsTransientFailure())
                 throw new TransientTicketsException();
 
             var heldTickets = TicketsByEventId[eventId]
-                .Where(x => x.AssignedToCustomerId == customerId);
+                .Where(x => x.AssignedToCustomerId == customerId && x.TicketStatus == TicketStatus.Reserved)
+                .ToList();
 
-            foreach(var heldTicket in heldTickets)
+            foreach (var heldTicket in heldTickets)
             {
-                heldTicket = heldTicket with { TicketStatus = TicketStatus.Confirmed };
+                heldTicket.TicketStatus = TicketStatus.Confirmed;
             }
+
+            return Task.FromResult<ICollection<Ticket>>(heldTickets);
+        }
+
+        public Task ReleaseTickets(Guid customerId, Guid eventId)
+        {
+            if (IsTransientFailure())
+                throw new TransientTicketsException();
+
+            var heldTickets = TicketsByEventId[eventId]
+               .Where(x => x.AssignedToCustomerId == customerId && x.TicketStatus == TicketStatus.Reserved)
+               .ToList();
+
+            foreach (var heldTicket in heldTickets)
+            {
+                heldTicket.TicketStatus = TicketStatus.Unassigned;
+                heldTicket.AssignedToCustomerId = null;
+            }
+
+            return Task.CompletedTask;
         }
 
         private bool IsTransientFailure()

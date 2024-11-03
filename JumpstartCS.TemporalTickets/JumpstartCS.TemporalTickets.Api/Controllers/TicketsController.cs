@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using JumpstartCS.TemporalTickets.Workflows;
+using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
 
 namespace JumpstartCS.TemporalTickets.Api.Controllers
@@ -11,16 +12,23 @@ namespace JumpstartCS.TemporalTickets.Api.Controllers
 
         public TicketsController(ITemporalClient temporalClient)
         {
-            _temporalClient = temporalClient;s
+            _temporalClient = temporalClient;
         }
 
-        [HttpPost()]
+        [HttpPost("{eventId}")]
         public async Task<IActionResult> ReserveTickets(
             Guid customerId, 
             Guid eventId, 
             int numberOfTickets)
         {
-            return Ok();
+            var tickets = await _temporalClient.ExecuteWorkflowAsync(
+                (PurchaseTicketsWorkflow workflow) => workflow.Run(customerId, eventId, numberOfTickets), new WorkflowOptions
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    TaskQueue = "ticket-purchase-task-queue"
+                });
+
+            return Ok(tickets);
         }
     }
 }
