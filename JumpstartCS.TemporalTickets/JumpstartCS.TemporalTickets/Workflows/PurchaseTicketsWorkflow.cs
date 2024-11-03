@@ -11,42 +11,74 @@ namespace JumpstartCS.TemporalTickets.Workflows
     {
         private const decimal TicketCost = 25;
 
-        [WorkflowRun]
-        public async Task<ICollection<Ticket>> Run(Guid customerId, Guid eventId, int numberOfTickets)
+        private readonly ActivityOptions ActivityOptions = new ActivityOptions
         {
-            var activityOptions = new ActivityOptions
+            StartToCloseTimeout = TimeSpan.FromSeconds(30),
+            RetryPolicy = new RetryPolicy
             {
-                StartToCloseTimeout = TimeSpan.FromSeconds(30),
-                RetryPolicy = new RetryPolicy
-                {
-                    NonRetryableErrorTypes = new List<string> {
+                NonRetryableErrorTypes = new List<string> {
                         typeof(InsufficientFundsException).Name,
                         typeof(InsufficientTicketsAvaibableException).Name,
                         typeof(InvalidEventException).Name,
                         typeof(InvalidCustomerException).Name,
                     },
-                    MaximumAttempts = 5
-                }
-            };
+                MaximumAttempts = 5
+            }
+        };
 
-            var totalCost = TicketCost * numberOfTickets;   
+        [WorkflowRun]
+        public async Task<ICollection<Ticket>> Run(Guid customerId, Guid eventId, int numberOfTickets)
+        {          
+            var totalCost = TicketCost * numberOfTickets;
 
-            await Workflow.ExecuteActivityAsync(
+            var rollbackTasks = new List<Func<Task>>();
+
+            try
+            {
+                await Workflow.ExecuteActivityAsync(
                  (TicketPurchaseActivities ticketPurchaseActivities) =>
                  ticketPurchaseActivities.HoldTickets(customerId, eventId, numberOfTickets),
-                 activityOptions);
+                 ActivityOptions);
 
-            await Workflow.ExecuteActivityAsync(
-                 (PaymentActivities paymentActivities) =>
-                 paymentActivities.MakePayment(customerId, totalCost),
-                 activityOptions);
+                var releaseTicketsCompensation = async () =>
+                {
+                    await Workflow.ExecuteActivityAsync(
+                           (TicketPurchaseActivities accountActivities) => accountActivities.ReleaseTickets(customerId, eventId),
+                           ActivityOptions);
+                };
 
-            var tickets = await Workflow.ExecuteActivityAsync(
-                 (TicketPurchaseActivities ticketPurchaseActivities) =>
-                 ticketPurchaseActivities.ReserveTickets(customerId, eventId),
-                 activityOptions);
+                rollbackTasks.Add(releaseTicketsCompensation);
 
-            return tickets;
+                await Workflow.ExecuteActivityAsync(
+                     (PaymentActivities paymentActivities) =>
+                     paymentActivities.MakePayment(customerId, totalCost),
+                     ActivityOptions);
+
+                var refundCustomerCompensation = async () =>
+                {
+                    await Workflow.ExecuteActivityAsync(
+                           (PaymentActivities paymentActivities) => paymentActivities.RefundPayment(customerId, totalCost),
+                           ActivityOptions);
+                };
+
+                rollbackTasks.Add(refundCustomerCompensation);
+
+                var tickets = await Workflow.ExecuteActivityAsync(
+                     (TicketPurchaseActivities ticketPurchaseActivities) =>
+                     ticketPurchaseActivities.ReserveTickets(customerId, eventId),
+                     ActivityOptions);
+
+                return tickets;
+            }
+            catch (Exception ex)
+            {
+                foreach(var t in rollbackTasks)
+                {
+                    await t();
+                }
+
+                throw;
+            }
         }
     }
 }

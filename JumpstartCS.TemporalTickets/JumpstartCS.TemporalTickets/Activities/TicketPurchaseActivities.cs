@@ -26,9 +26,9 @@ namespace JumpstartCS.TemporalTickets.Activities
         }
 
         [Activity]
-        public Task ReleaseTickets()
+        public async Task ReleaseTickets(Guid customerId, Guid eventId)
         {
-            return Task.CompletedTask;
+            await _ticketRepository.ReleaseTickets(customerId, eventId);
         }
     }
 }

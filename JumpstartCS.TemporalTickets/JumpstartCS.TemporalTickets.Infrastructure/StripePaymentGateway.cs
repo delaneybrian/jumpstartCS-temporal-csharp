@@ -14,7 +14,7 @@ namespace JumpstartCS.TemporalTickets.Infrastructure
         private readonly ConcurrentDictionary<Guid, decimal> BalanceByCustomerId = new()
         {
             [Guid.Parse("b073f08f-a3af-4b32-85c6-f2c5121291d6")] = 100,
-            [Guid.Parse("9266a6d5-3218-4dc1-b4ba-88e8eca2dc58")] = 100,
+            [Guid.Parse("9266a6d5-3218-4dc1-b4ba-88e8eca2dc58")] = 100000,
             [Guid.Parse("7ec58b17-2648-46d8-94cd-a3e17cdfda74")] = 100,
             [Guid.Parse("195ba17a-48ea-47d8-affc-2feebc3aa772")] = 100,
             [Guid.Parse("ec9439e2-1eaa-4c81-a952-f14ee26f66d7")] = 100
